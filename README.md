@@ -1,3 +1,5 @@
+
+
 # Decentralized Academic Assistant
 
 A blockchain-backed academic communication platform combining 4 Solidity smart contracts, a Node.js/Express REST API with RAG-powered AI (Mistral), a MetaMask-enabled HTML/JS frontend, and an optional Telegram bot interface.
