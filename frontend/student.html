@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Academic Assistant — Student</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; color: #1a202c; }
+    header { background: #2d3748; color: white; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 1.25rem; }
+    .wallet-info { font-size: 0.85rem; opacity: 0.8; }
+    #connect-btn { background: #4299e1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    #connect-btn:hover { background: #3182ce; }
+    main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    section { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    section h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #2d3748; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+    .announcement-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .announcement-card .meta { font-size: 0.75rem; color: #718096; margin-bottom: 0.4rem; }
+    .announcement-card .content { font-size: 0.9rem; margin-bottom: 0.6rem; }
+    .tag { display: inline-block; background: #ebf8ff; color: #2b6cb0; border-radius: 4px; padding: 2px 7px; font-size: 0.72rem; margin-right: 4px; }
+    .ack-btn { background: #48bb78; color: white; border: none; padding: 0.35rem 0.85rem; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
+    .ack-btn:hover { background: #38a169; }
+    .ack-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+    .chat-messages { min-height: 200px; max-height: 340px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.88rem; }
+    .msg { margin-bottom: 0.6rem; line-height: 1.5; }
+    .msg.user { color: #2b6cb0; font-weight: 600; }
+    .msg.bot  { color: #276749; }
+    .msg.err  { color: #c53030; }
+    .chat-input-row { display: flex; gap: 0.5rem; }
+    .chat-input-row input { flex: 1; border: 1px solid #cbd5e0; border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.9rem; }
+    .chat-input-row button { background: #4299e1; color: white; border: none; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .drop-zone { border: 2px dashed #cbd5e0; border-radius: 8px; padding: 1.5rem; text-align: center; color: #718096; cursor: pointer; transition: background 0.2s; }
+    .drop-zone.over { background: #ebf8ff; border-color: #4299e1; }
+    .verify-result { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-weight: 600; text-align: center; }
+    .verify-result.valid   { background: #c6f6d5; color: #276749; }
+    .verify-result.invalid { background: #fed7d7; color: #c53030; }
+    #loading { color: #718096; font-style: italic; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Academic Assistant — Student</h1>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span class="wallet-info" id="wallet-label">Not connected</span>
+    <button id="connect-btn">Connect Wallet</button>
+  </div>
+</header>
+
+<main id="main-content" style="display:none;">
+  <!-- Announcements -->
+  <section>
+    <h2>📢 Announcements</h2>
+    <div id="announcements-list"><p style="color:#718096;font-size:0.88rem;">Connect your wallet to load announcements.</p></div>
+  </section>
+
+  <!-- Chat -->
+  <section>
+    <h2>💬 Ask the Assistant</h2>
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg bot">Hello! Ask me anything about your course — schedules, exams, deadlines...</div>
+    </div>
+    <div class="chat-input-row">
+      <input id="chat-input" type="text" placeholder="e.g. When is the next exam?" />
+      <button id="chat-send">Send</button>
+    </div>
+  </section>
+
+  <!-- Document Verifier -->
+  <section style="grid-column: 1 / -1;">
+    <h2>🔍 Document Integrity Verifier</h2>
+    <p style="font-size:0.85rem;color:#718096;margin-bottom:0.75rem;">Drag & drop a file to verify it hasn't been modified since the professor registered it on-chain.</p>
+    <div>
+      <label style="font-size:0.88rem;font-weight:600;">Document ID:</label>
+      <input id="verify-doc-id" type="number" min="1" placeholder="e.g. 1" style="margin-left:0.5rem;border:1px solid #cbd5e0;border-radius:5px;padding:0.35rem 0.6rem;width:80px;" />
+    </div>
+    <div class="drop-zone" id="drop-zone" style="margin-top:0.75rem;">
+      Drop your file here, or <strong>click to select</strong>
+      <input type="file" id="file-input" style="display:none;" />
+    </div>
+    <div id="verify-result"></div>
+  </section>
+</main>
+
+<script type="module">
+  import * as viem from "https://esm.sh/viem@2";
+  window.viem = viem;
+</script>
+<script src="js/contracts.js"></script>
+<script src="js/metamask.js"></script>
+<script src="js/api.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>

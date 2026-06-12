@@ -1,0 +1,16 @@
+node_modules
+artifacts
+cache
+dist
+.env
+ignition/deployments
+typechain-types
+
+# LaTeX build artifacts
+rapport/*.aux
+rapport/*.log
+rapport/*.lof
+rapport/*.lot
+rapport/*.toc
+rapport/*.out
+rapport/*.synctex.gz

@@ -1,0 +1,33 @@
+{
+  "name": "academic-assistant-backend",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "cors": "^2.8.5",
+    "multer": "^2.0.0",
+    "viem": "^2.0.0",
+    "dotenv": "^16.0.0",
+    "@mistralai/mistralai": "^1.0.0",
+    "openai": "^4.67.0",
+    "telegraf": "^4.16.0",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^24.0.0",
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/multer": "^1.4.0",
+    "@types/pdf-parse": "^1.1.4"
+  }
+}

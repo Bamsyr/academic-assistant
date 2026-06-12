@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Academic Assistant — Professor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f7f7fb; color: #1a202c; }
+    header { background: #553c9a; color: white; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 1.25rem; }
+    .wallet-info { font-size: 0.85rem; opacity: 0.8; }
+    #connect-btn { background: #9f7aea; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    #connect-btn:hover { background: #805ad5; }
+    main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    section { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    section h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #2d3748; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: #4a5568; }
+    input[type=text], input[type=number], select, textarea {
+      width: 100%; border: 1px solid #cbd5e0; border-radius: 6px; padding: 0.45rem 0.7rem; font-size: 0.9rem; margin-bottom: 0.75rem;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn { background: #553c9a; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .btn:hover { background: #44337a; }
+    .btn-green { background: #38a169; }
+    .btn-green:hover { background: #276749; }
+    .status { margin-top: 0.5rem; font-size: 0.82rem; min-height: 1.2em; }
+    .status.ok  { color: #276749; }
+    .status.err { color: #c53030; }
+    .ack-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .ack-table th { background: #f7fafc; text-align: left; padding: 0.4rem 0.6rem; border-bottom: 2px solid #e2e8f0; }
+    .ack-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #f0f0f0; word-break: break-all; }
+    .drop-zone { border: 2px dashed #d6bcfa; border-radius: 8px; padding: 1.25rem; text-align: center; color: #805ad5; cursor: pointer; font-size: 0.88rem; }
+    .drop-zone.over { background: #faf5ff; border-color: #553c9a; }
+    .hash-preview { font-size: 0.72rem; color: #718096; word-break: break-all; margin-top: 0.3rem; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Academic Assistant — Professor Dashboard</h1>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span class="wallet-info" id="wallet-label">Not connected</span>
+    <button id="connect-btn">Connect Wallet</button>
+  </div>
+</header>
+
+<main id="main-content" style="display:none;">
+
+  <!-- Publish Announcement -->
+  <section>
+    <h2>📝 Publish Announcement</h2>
+    <label>Content</label>
+    <textarea id="ann-content" placeholder="e.g. The exam will take place on March 15th at 10:00 in room B201."></textarea>
+    <label>Category</label>
+    <select id="ann-category">
+      <option value="exam">Exam</option>
+      <option value="homework">Homework</option>
+      <option value="schedule">Schedule Change</option>
+      <option value="info">General Info</option>
+    </select>
+    <label>Target Group</label>
+    <input id="ann-group" type="text" placeholder="e.g. MF1, MF2, all" value="all" />
+    <button class="btn" id="publish-btn">Publish on Blockchain</button>
+    <div class="status" id="publish-status"></div>
+  </section>
+
+  <!-- Upload Document -->
+  <section>
+    <h2>📄 Register Document</h2>
+    <label>Target Group</label>
+    <input id="doc-group" type="text" placeholder="e.g. MF1, all" value="all" />
+    <div class="drop-zone" id="doc-drop">
+      Drop PDF / file here or <strong>click to select</strong>
+      <input type="file" id="doc-file" style="display:none;" />
+    </div>
+    <div class="hash-preview" id="doc-hash-preview"></div>
+    <button class="btn btn-green" id="register-doc-btn" style="margin-top:0.75rem;">Register Hash on Blockchain</button>
+    <div class="status" id="doc-status"></div>
+  </section>
+
+  <!-- Acknowledgment Tracker -->
+  <section>
+    <h2>👁 Acknowledgment Tracker</h2>
+    <label>Announcement ID</label>
+    <input id="ack-ann-id" type="number" min="1" placeholder="1" />
+    <button class="btn" id="load-acks-btn">Load</button>
+    <div style="margin-top:0.75rem;overflow-x:auto;">
+      <table class="ack-table">
+        <thead><tr><th>#</th><th>Student Address</th></tr></thead>
+        <tbody id="ack-body"><tr><td colspan="2" style="color:#718096;">Enter an ID and click Load.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Admin: Assign Roles -->
+  <section>
+    <h2>🔑 Assign Role (Admin)</h2>
+    <label>Wallet Address</label>
+    <input id="role-address" type="text" placeholder="0x..." />
+    <label>Role</label>
+    <select id="role-select">
+      <option value="PROFESSOR_ROLE">Professor</option>
+      <option value="STUDENT_ROLE">Student</option>
+    </select>
+    <label>Group (optional)</label>
+    <input id="role-group" type="text" placeholder="e.g. MF1" />
+    <button class="btn" id="assign-role-btn">Assign Role</button>
+    <div class="status" id="role-status"></div>
+  </section>
+
+</main>
+
+<script type="module">
+  import * as viem from "https://esm.sh/viem@2";
+  window.viem = viem;
+</script>
+<script src="js/contracts.js"></script>
+<script src="js/metamask.js"></script>
+<script src="js/api.js"></script>
+<script src="js/professor.js"></script>
+</body>
+</html>
